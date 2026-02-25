@@ -190,7 +190,7 @@ async function fetchProperty(property) {
       url: r.url,
     }));
 
-    // Parse photos and split by source
+    // Parse photos
     const parsedPhotos = photos.map(p => ({
       id: p.id,
       caption: p.caption,
@@ -205,8 +205,6 @@ async function fetchProperty(property) {
         original: p.images?.original?.url,
       },
     }));
-    const travelerPhotos = parsedPhotos.filter(p => p.source === 'Traveler');
-    const officialPhotos = parsedPhotos.filter(p => p.source !== 'Traveler');
 
     return {
       propertyId: property.id,
@@ -227,8 +225,6 @@ async function fetchProperty(property) {
       awardedBadges: details.awards?.map(a => a.display_name) || [],
       reviews: parsedReviews,
       photos: parsedPhotos,
-      travelerPhotos,
-      officialPhotos,
     };
 
   } catch (err) {
@@ -247,8 +243,6 @@ async function fetchProperty(property) {
       error: err.message,
       reviews: [],
       photos: [],
-      travelerPhotos: [],
-      officialPhotos: [],
     };
   }
 }

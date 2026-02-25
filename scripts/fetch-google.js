@@ -31,7 +31,7 @@ if (fs.existsSync(envPath)) {
 
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY;
 const PHOTO_MAX_WIDTH = 800;
-const MAX_PHOTOS = 20;
+const MAX_PHOTOS = 60;
 const DELAY_MS = 300; // Be polite to the API
 
 if (!API_KEY || API_KEY === 'your_google_places_api_key_here') {
