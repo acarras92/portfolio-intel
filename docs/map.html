@@ -8,7 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
   <style>
     :root {
@@ -265,6 +267,39 @@
     .leaflet-control-attribution a {
       color: var(--text-dim) !important;
     }
+
+    /* Marker cluster styling */
+    .marker-cluster {
+      background: rgba(200, 169, 110, 0.25);
+      border-radius: 50%;
+    }
+
+    .marker-cluster div {
+      background: var(--accent);
+      color: var(--bg);
+      border-radius: 50%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      width: 32px;
+      height: 32px;
+      margin: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .marker-cluster-small {
+      background: rgba(200, 169, 110, 0.2);
+    }
+
+    .marker-cluster-medium {
+      background: rgba(200, 169, 110, 0.3);
+    }
+
+    .marker-cluster-large {
+      background: rgba(200, 169, 110, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -332,7 +367,24 @@ fetch('./data/portfolio.json')
   .then(portfolio => {
     document.getElementById('property-count').textContent = portfolio.length + ' properties';
 
-    const markers = [];
+    const clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 45,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      spiderfyDistanceMultiplier: 2,
+      iconCreateFunction: function(cluster) {
+        const count = cluster.getChildCount();
+        let size = 'small';
+        if (count >= 5) size = 'medium';
+        if (count >= 10) size = 'large';
+        return L.divIcon({
+          html: '<div>' + count + '</div>',
+          className: 'marker-cluster marker-cluster-' + size,
+          iconSize: [40, 40],
+        });
+      },
+    });
 
     portfolio.forEach(p => {
       const coord = COORDS[p.id];
@@ -362,14 +414,15 @@ fetch('./data/portfolio.json')
         </div>
       `;
 
-      const marker = L.marker(coord, { icon }).addTo(map).bindPopup(popup, { maxWidth: 280 });
-      markers.push(marker);
+      const marker = L.marker(coord, { icon }).bindPopup(popup, { maxWidth: 280 });
+      clusterGroup.addLayer(marker);
     });
 
+    map.addLayer(clusterGroup);
+
     // Fit map to all markers
-    if (markers.length > 0) {
-      const group = L.featureGroup(markers);
-      map.fitBounds(group.getBounds().pad(0.15));
+    if (clusterGroup.getLayers().length > 0) {
+      map.fitBounds(clusterGroup.getBounds().pad(0.15));
     }
   })
   .catch(err => {
