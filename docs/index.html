@@ -838,6 +838,7 @@
   </div>
   <div class="header-right">
     <span class="last-fetch" id="last-fetch">Loading...</span>
+    <a href="./map.html" style="padding:6px 14px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25);color:#c8a96e;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">Portfolio Map</a>
     <span class="badge badge-google" id="google-badge">Google</span>
     <span class="badge badge-ta" id="ta-badge">TripAdvisor</span>
   </div>
@@ -972,7 +973,20 @@ async function init() {
 
     portfolio = data;
     renderSidebar();
-    showWelcome();
+
+    // Handle #property=N deep link from map
+    const hash = window.location.hash;
+    const match = hash.match(/^#property=(\d+)$/);
+    if (match) {
+      const pid = parseInt(match[1], 10);
+      if (portfolio.find(p => p.id === pid)) {
+        selectProperty(pid);
+      } else {
+        showWelcome();
+      }
+    } else {
+      showWelcome();
+    }
 
   } catch (err) {
     console.error('Failed to load data:', err);
