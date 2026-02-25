@@ -1098,14 +1098,23 @@ function renderPropertyOverview(id) {
   const g = p.google;
   const ta = p.tripadvisor;
 
-  // All photos combined
+  // Official photos: Google photos + TripAdvisor official/management photos
   const googlePhotos = (g?.photos || []).map(ph => ({ ...ph, source: 'google' }));
-  const taPhotos = (ta?.photos || []).map(ph => ({
+  const taOfficialPhotos = (ta?.officialPhotos || []).map(ph => ({
     url: ph.images?.large || ph.images?.medium || ph.images?.small || ph.images?.original,
     source: 'ta',
     caption: ph.caption,
   }));
-  const allPhotos = [...googlePhotos, ...taPhotos];
+  const officialPhotos = [...googlePhotos, ...taOfficialPhotos];
+
+  // Traveler photos from TripAdvisor
+  const travelerPhotos = (ta?.travelerPhotos || []).map(ph => ({
+    url: ph.images?.large || ph.images?.medium || ph.images?.small || ph.images?.original,
+    source: 'ta',
+    caption: ph.caption,
+  }));
+
+  const allPhotos = [...officialPhotos, ...travelerPhotos];
 
   const hasData = g || ta;
 
@@ -1180,8 +1189,11 @@ function renderPropertyOverview(id) {
     <!-- Tabs -->
     <div class="tabs" style="margin-bottom:20px;">
       <div class="tab active" id="tab-reviews" onclick="switchTab('reviews')">Reviews</div>
-      <div class="tab" id="tab-photos" onclick="switchTab('photos')">
-        Photos ${allPhotos.length > 0 ? `<span style="opacity:0.6;font-size:11px;">(${allPhotos.length})</span>` : ''}
+      <div class="tab" id="tab-official-photos" onclick="switchTab('official-photos')">
+        Official Photos ${officialPhotos.length > 0 ? `<span style="opacity:0.6;font-size:11px;">(${officialPhotos.length})</span>` : ''}
+      </div>
+      <div class="tab" id="tab-traveler-photos" onclick="switchTab('traveler-photos')">
+        Traveler Photos ${travelerPhotos.length > 0 ? `<span style="opacity:0.6;font-size:11px;">(${travelerPhotos.length})</span>` : ''}
       </div>
     </div>
 
@@ -1190,9 +1202,14 @@ function renderPropertyOverview(id) {
       ${renderReviews(p)}
     </div>
 
-    <!-- Photos Tab -->
-    <div class="tab-content" id="tab-content-photos">
-      ${renderPhotos(allPhotos)}
+    <!-- Official Photos Tab -->
+    <div class="tab-content" id="tab-content-official-photos">
+      ${renderPhotos(officialPhotos, 0)}
+    </div>
+
+    <!-- Traveler Photos Tab -->
+    <div class="tab-content" id="tab-content-traveler-photos">
+      ${renderPhotos(travelerPhotos, officialPhotos.length)}
     </div>
 
   `;
@@ -1298,7 +1315,7 @@ function setReviewSource(source, id) {
   setTimeout(() => switchTab('reviews'), 10);
 }
 
-function renderPhotos(photos) {
+function renderPhotos(photos, indexOffset = 0) {
   if (photos.length === 0) {
     return `<div class="no-data">
       <div class="no-data-icon">📷</div>
@@ -1313,7 +1330,7 @@ function renderPhotos(photos) {
         const url = ph.url;
         if (!url) return '';
         return `
-          <div class="photo-card" onclick="openLightbox(${idx})">
+          <div class="photo-card" onclick="openLightbox(${indexOffset + idx})">
             <img src="${url}" alt="${escHtml(ph.caption || '')}" loading="lazy"
               onerror="this.parentNode.style.display='none'">
             <span class="photo-source-tag ${ph.source}">${ph.source === 'google' ? 'G' : 'TA'}</span>

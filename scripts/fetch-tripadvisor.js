@@ -3,7 +3,7 @@
  * Fetches TripAdvisor Content API data for each property:
  *   - Overall rating, review count, subratings
  *   - All reviews from the last 3 years (paginated)
- *   - Up to 10 photos
+ *   - Up to 30 photos (split into traveler vs official)
  *
  * API: TripAdvisor Content API (free tier: 5,000 calls/month)
  * Signup: https://www.tripadvisor.com/developers
@@ -138,7 +138,7 @@ async function getLocationPhotos(locationId) {
   const response = await taAxios.get(`/location/${locationId}/photos`, {
     params: {
       language: 'en',
-      limit: 10,
+      limit: 30,
     }
   });
   return response.data?.data || [];
@@ -190,12 +190,12 @@ async function fetchProperty(property) {
       url: r.url,
     }));
 
-    // Parse photos
+    // Parse photos and split by source
     const parsedPhotos = photos.map(p => ({
       id: p.id,
       caption: p.caption,
       publishedDate: p.published_date,
-      source: p.source?.name,
+      source: p.source?.name || 'unknown',
       user: p.user?.username,
       images: {
         thumbnail: p.images?.thumbnail?.url,
@@ -205,6 +205,8 @@ async function fetchProperty(property) {
         original: p.images?.original?.url,
       },
     }));
+    const travelerPhotos = parsedPhotos.filter(p => p.source === 'Traveler');
+    const officialPhotos = parsedPhotos.filter(p => p.source !== 'Traveler');
 
     return {
       propertyId: property.id,
@@ -225,6 +227,8 @@ async function fetchProperty(property) {
       awardedBadges: details.awards?.map(a => a.display_name) || [],
       reviews: parsedReviews,
       photos: parsedPhotos,
+      travelerPhotos,
+      officialPhotos,
     };
 
   } catch (err) {
@@ -243,6 +247,8 @@ async function fetchProperty(property) {
       error: err.message,
       reviews: [],
       photos: [],
+      travelerPhotos: [],
+      officialPhotos: [],
     };
   }
 }

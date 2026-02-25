@@ -3,7 +3,7 @@
  * Fetches Google Places data for each property:
  *   - Overall rating, review count
  *   - Up to 5 most recent reviews (text, author, rating, date)
- *   - Up to 10 photo references (converted to usable URLs)
+ *   - Up to 20 photo references (converted to usable URLs)
  *   - Place details (website, phone, hours)
  *
  * API: Google Places API (New)
@@ -31,7 +31,7 @@ if (fs.existsSync(envPath)) {
 
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY;
 const PHOTO_MAX_WIDTH = 800;
-const MAX_PHOTOS = 10;
+const MAX_PHOTOS = 20;
 const DELAY_MS = 300; // Be polite to the API
 
 if (!API_KEY || API_KEY === 'your_google_places_api_key_here') {
